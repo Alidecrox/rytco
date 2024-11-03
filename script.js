@@ -1,88 +1,84 @@
-const ageCalculate = () => {
-    const today = new Date();
-    const inputDate = new Date(document.getElementById("date-input").value);
-  
-    const birthDetails = {
-      date: inputDate.getDate(),
-      month: inputDate.getMonth() + 1,
-      year: inputDate.getFullYear(),
-    };
-  
-    const currentYear = today.getFullYear();
-    const currentMonth = today.getMonth() + 1;
-    const currentDate = today.getDate();
-  
-    if (isFutureDate(birthDetails, currentYear, currentMonth, currentDate)) {
-      alert("Not Born Yet");
-      displayResult("-", "-", "-");
-      return;
-    }
-  
-    const { years, months, days } = calculateAge(
-      birthDetails,
-      currentYear,
-      currentMonth,
-      currentDate
-    );
-  
-    displayResult(days, months, years);
-  };
-  
-  const isFutureDate = (birthDetails, currentYear, currentMonth, currentDate) => {
-    return (
-      birthDetails.year > currentYear ||
-      (birthDetails.year === currentYear &&
-        (birthDetails.month > currentMonth ||
-          (birthDetails.month === currentMonth &&
-            birthDetails.date > currentDate)))
-    );
-  };
-  
-  const calculateAge = (birthDetails, currentYear, currentMonth, currentDate) => {
-    let years = currentYear - birthDetails.year;
-    let months, days;
-  
-    if (currentMonth < birthDetails.month) {
-      years--;
-      months = 12 - (birthDetails.month - currentMonth);
+const btn = document.querySelector('.input');
+const content = document.querySelector('.content');
+
+function speak(text) {
+    const text_speak = new SpeechSynthesisUtterance(text);
+
+    text_speak.rate = 1;
+    text_speak.volume = 1;
+    text_speak.pitch = 1;
+
+    window.speechSynthesis.speak(text_speak);
+}
+
+function wishMe() {
+    var day = new Date();
+    var hour = day.getHours();
+
+    if (hour >= 0 && hour < 12) {
+        speak("Good Morning gentleman...");
+    } else if (hour >= 12 && hour < 17) {
+        speak("have a nice day...");
     } else {
-      months = currentMonth - birthDetails.month;
+        speak("Good Evening boss...");
     }
-  
-    if (currentDate < birthDetails.date) {
-      months--;
-      const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
-      const daysInLastMonth = getDaysInMonth(lastMonth, currentYear);
-      days = daysInLastMonth - (birthDetails.date - currentDate);
+}
+
+window.addEventListener('load', () => {
+    speak("hi hello i am ali");
+    wishMe();
+});
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+
+recognition.onresult = (event) => {
+    const currentIndex = event.resultIndex;
+    const transcript = event.results[currentIndex][0].transcript;
+    content.textContent = transcript;
+    takeCommand(transcript.toLowerCase());
+};
+
+btn.addEventListener('click', () => {
+    content.textContent = "Listening...";
+    recognition.start();
+});
+
+function takeCommand(message) {
+    if (message.includes('hey') || message.includes('hello')) {
+        speak("Hello Sir, How May I Help You?");
+    } else if (message.includes("open google")) {
+        window.open("https://google.com", "_blank");
+        speak("Opening Google...");
+    } else if (message.includes("open youtube")) {
+        window.open("https://youtube.com", "_blank");
+        speak("Opening Youtube...");
+    } else if (message.includes("open facebook")) {
+        window.open("https://facebook.com", "_blank");
+        speak("Opening Facebook...");
+    } else if (message.includes('what is') || message.includes('who is') || message.includes('what are')) {
+        window.open(`https://www.google.com/search?q=${message.replace(" ", "+")}`, "_blank");
+        const finalText = "This is what I found on the internet regarding " + message;
+        speak(finalText);
+    } else if (message.includes('wikipedia')) {
+        window.open(`https://en.wikipedia.org/wiki/${message.replace("wikipedia", "").trim()}`, "_blank");
+        const finalText = "This is what I found on Wikipedia regarding " + message;
+        speak(finalText);
+    } else if (message.includes('time')) {
+        const time = new Date().toLocaleString(undefined, { hour: "numeric", minute: "numeric" });
+        const finalText = "The current time is " + time;
+        speak(finalText);
+    } else if (message.includes('date')) {
+        const date = new Date().toLocaleString(undefined, { month: "short", day: "numeric" });
+        const finalText = "Today's date is " + date;
+        speak(finalText);
+    } else if (message.includes('calculator')) {
+        window.open('Calculator:///');
+        const finalText = "Opening Calculator";
+        speak(finalText);
     } else {
-      days = currentDate - birthDetails.date;
+        window.open(`https://www.google.com/search?q=${message.replace(" ", "+")}`, "_blank");
+        const finalText = "I found some information for " + message + " on Google";
+        speak(finalText);
     }
-    return { years, months, days };
-  };
-  
-  const getDaysInMonth = (month, year) => {
-    const isLeapYear = year % 4 === 0 && (year % 100 != 0 || year % 400 === 0);
-    const getDaysInMonth = [
-      31,
-      isLeapYear ? 29 : 28,
-      31,
-      30,
-      31,
-      30,
-      31,
-      31,
-      30,
-      31,
-      30,
-      31,
-    ];
-    return getDaysInMonth[month - 1];
-  };
-  
-  const displayResult = (bdate, bMonth, bYear) => {
-    document.getElementById("years").textContent = bYear;
-    document.getElementById("months").textContent = bMonth;
-    document.getElementById("days").textContent = bdate;
-  };
-  
-  document.getElementById("calc-age-btn").addEventListener("click", ageCalculate);
+}
